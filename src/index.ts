@@ -95,6 +95,29 @@ async function getNomicRules(): Promise<string> {
   }
 }
 
+// Function to fetch scores from GitHub
+async function getNomicScores(): Promise<string> {
+  try {
+    const { data } = await octokit.rest.repos.getContent({
+      owner: "SirRender00",
+      repo: "nomic",
+      path: "scores.txt",
+    });
+
+    if ("content" in data && data.content) {
+      // Decode base64 content
+      const content = Buffer.from(data.content, 'base64').toString('utf-8');
+      return content;
+    } else {
+      throw new Error("Could not retrieve scores content");
+    }
+  } catch (error) {
+    console.error("Error fetching scores:", error);
+    throw new Error("Failed to fetch scores from GitHub");
+  }
+}
+
+
 // Function to convert rule references to markdown citations
 function formatRuleCitations(text: string): string {
   // Pattern to match various rule reference formats:
@@ -171,7 +194,7 @@ client.on("messageCreate", async message => {
           const response = await openai.chat.completions.create({
             model: "gpt-5-nano",
             messages: [
-              { role: "system", content: `${systemPrompt}\n\n ----- \n\n ${await getNomicRules()}` },
+              { role: "system", content: `${systemPrompt}\n\n ----- \n\n ${await getNomicRules()}\n\n ----- ${ await getNomicScores()}\n\n` },
               ...history,
               { role: "user", content: userTurn }
             ],

@@ -1,14 +1,15 @@
-# Nomic Discord Bot
+# NomicGPT — Nomic Discord Bot
 
-A Discord bot built with TypeScript for managing Nomic game rules and providing AI assistance.
+A Discord bot built with TypeScript for playing Nomic: responds to @mentions, cites rules inline with links to your GitHub `rules.md`, and keeps context through reply chains.
 
 ## Features
 
-- `/ping` slash command that responds with "Pong!"
-- `/ask` command to ask questions to GPT-5-Nano
-- `/rules` command to fetch current Nomic rules from GitHub
-- Built with TypeScript and Discord.js v14
-- Environment variable configuration
+- **@mention Q&A**: Ask questions by mentioning the bot in any channel
+- **Reply-chain context**: Maintains up to 6 prior messages of context when you reply to the bot
+- **Live rules sync**: Fetches the latest `rules.md` from GitHub
+- **Inline citations**: Converts references like `Rule 123` to markdown links to that rule anchor
+- **Slash commands**: `/ping`, `/rules`
+- **TypeScript + Discord.js v14**
 
 ## Setup
 
@@ -34,6 +35,10 @@ A Discord bot built with TypeScript for managing Nomic game rules and providing 
    OPENAI_API_KEY=your_openai_api_key_here
    GITHUB_TOKEN=your_github_token_here
    ```
+
+4. In the Discord Developer Portal (Bot settings), enable Privileged Gateway Intents:
+   - Message Content Intent (required for @mention and replies)
+   - Guild Members Intent (optional, only if needed later)
 
 ### Getting Discord Bot Credentials
 
@@ -64,11 +69,12 @@ npm run build
 npm start
 ```
 
-### Available Commands
+### Available Commands and Interactions
 
-- `/ping` - Responds with "Pong!"
-- `/ask <question>` - Ask GPT-5-Nano a question
-- `/rules` - Fetch and display current Nomic rules from GitHub
+- `/ping` — Responds with "Pong!"
+- `/rules` — Fetch and display current Nomic rules from GitHub
+- `@NomicGPT ...` — Mention the bot to ask a question
+  - Reply to the bot’s message to continue the conversation; the bot includes up to 6 messages of prior context
 
 ### Getting API Keys
 
@@ -95,7 +101,6 @@ npm start
 ├── dist/                 # Compiled JavaScript (after build)
 ├── package.json          # Dependencies and scripts
 ├── tsconfig.json         # TypeScript configuration
-├── env.example           # Environment variables template
 └── README.md            # This file
 ```
 
