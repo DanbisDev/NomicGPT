@@ -148,6 +148,55 @@ function formatRuleCitations(text: string): string {
   });
 }
 
+// Function to split long messages into chunks that fit Discord's 2000 character limit
+function splitMessage(text: string, maxLength: number = 2000): string[] {
+  if (text.length <= maxLength) {
+    return [text];
+  }
+  
+  const chunks: string[] = [];
+  let currentChunk = '';
+  
+  // Split by paragraphs first (double newlines)
+  const paragraphs = text.split('\n\n');
+  
+  for (const paragraph of paragraphs) {
+    // If adding this paragraph would exceed the limit, start a new chunk
+    if (currentChunk.length + paragraph.length + 2 > maxLength) {
+      if (currentChunk.length > 0) {
+        chunks.push(currentChunk.trim());
+        currentChunk = '';
+      }
+      
+      // If a single paragraph is too long, split it by sentences
+      if (paragraph.length > maxLength) {
+        const sentences = paragraph.split('. ');
+        for (const sentence of sentences) {
+          if (currentChunk.length + sentence.length + 2 > maxLength) {
+            if (currentChunk.length > 0) {
+              chunks.push(currentChunk.trim());
+              currentChunk = '';
+            }
+            chunks.push(sentence.trim());
+          } else {
+            currentChunk += (currentChunk.length > 0 ? '. ' : '') + sentence;
+          }
+        }
+      } else {
+        currentChunk = paragraph;
+      }
+    } else {
+      currentChunk += (currentChunk.length > 0 ? '\n\n' : '') + paragraph;
+    }
+  }
+  
+  if (currentChunk.length > 0) {
+    chunks.push(currentChunk.trim());
+  }
+  
+  return chunks;
+}
+
 // Slash commands
 const commands = [
   new SlashCommandBuilder()
@@ -208,7 +257,16 @@ client.on("messageCreate", async message => {
           });
           const gptResponse = response.choices[0]?.message?.content ?? "I have absolutely no idea. Try using a superior model like claude. Maybe that model can generate a response.";
           const formattedResponse = formatRuleCitations(gptResponse);
-          await message.reply(`${formattedResponse}\n`);
+          
+          // Split long messages into chunks
+          const messageChunks = splitMessage(formattedResponse);
+          await message.reply(messageChunks[0]);
+          
+          // Send additional chunks as follow-up messages
+          for (let i = 1; i < messageChunks.length; i++) {
+            await message.channel.send(messageChunks[i]);
+          }
+          
           await message.reactions.cache.get('🤔')?.users.remove(client.user?.id);
         } catch (err) {
           console.error(err);
@@ -241,7 +299,16 @@ client.on("messageCreate", async message => {
       });
       const gptResponse = response.choices[0]?.message?.content ?? "I have absolutely no idea. Try using a superior model like claude. Maybe that model can generate a response.";
       const formattedResponse = formatRuleCitations(gptResponse);
-      await message.reply(formattedResponse);
+      
+      // Split long messages into chunks
+      const messageChunks = splitMessage(formattedResponse);
+      await message.reply(messageChunks[0]);
+      
+      // Send additional chunks as follow-up messages
+      for (let i = 1; i < messageChunks.length; i++) {
+        await message.channel.send(messageChunks[i]);
+      }
+      
       await message.reactions.cache.get('🤔')?.users.remove(client.user?.id);
     } catch (err) {
       console.error(err);
