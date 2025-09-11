@@ -188,7 +188,7 @@ client.on("messageCreate", async message => {
   // Ignore messages from bots (including our own)
   if (message.author.bot) return;
   
-  // First: if this is a reply to the bot, handle it and STOP (to avoid double-processing with mention)
+  // Check if this is a reply to the bot (prioritize reply chain context even if also mentioned)
   if (message.reference && message.reference.messageId) {
     try {
       const referencedMessage = await message.channel.messages.fetch(message.reference.messageId);
@@ -223,7 +223,7 @@ client.on("messageCreate", async message => {
     }
   }
 
-  // Second: if the bot is mentioned, respond using GPT with the message content (minus the mention)
+  // If the bot is mentioned (and not a reply to the bot), respond using GPT with the message content (minus the mention)
   if (message.mentions.has(client.user?.id || '')) {
     try {
       const cleanContent = message.content.replace(new RegExp(`<@!?${client.user?.id}>`, 'g'), '').trim();
