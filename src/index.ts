@@ -19,7 +19,7 @@ Ensure that your advice is perfectly in line with the Rules and make sure your r
 
 We are using discord so make sure it is easy to read in a chat platform.
 
-Be short and concise and keep your response less than 1000 characters.
+Be short and concise and keep your response less than 1000 characters. If your answer is short and simple you do not need to give your reason or make your reasons extremely brief. If it's more complicated you can go into detail.
 `
 // =================================================================================
 
@@ -118,6 +118,13 @@ async function getNomicScores(): Promise<string> {
 }
 
 
+// Function to build the complete system prompt with rules and scores
+async function buildSystemPrompt(): Promise<string> {
+  const rules = await getNomicRules();
+  const scores = await getNomicScores();
+  return `${systemPrompt}\n\n ----- \n\n ${rules}\n\n ----- ${scores}\n\n`;
+}
+
 // Function to convert rule references to markdown citations
 function formatRuleCitations(text: string): string {
   // Pattern to match various rule reference formats:
@@ -194,7 +201,7 @@ client.on("messageCreate", async message => {
           const response = await openai.chat.completions.create({
             model: "gpt-5-nano",
             messages: [
-              { role: "system", content: `${systemPrompt}\n\n ----- \n\n ${await getNomicRules()}\n\n ----- ${ await getNomicScores()}\n\n` },
+              { role: "system", content: await buildSystemPrompt() },
               ...history,
               { role: "user", content: userTurn }
             ],
@@ -228,7 +235,7 @@ client.on("messageCreate", async message => {
       const response = await openai.chat.completions.create({
         model: "gpt-5-mini",
         messages: [
-          { role: "system", content: `${systemPrompt}\n\n ----- \n\n ${await getNomicRules()}` },
+          { role: "system", content: await buildSystemPrompt() },
           { role: "user", content: cleanContent }
         ],
       });
