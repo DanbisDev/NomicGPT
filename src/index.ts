@@ -231,7 +231,7 @@ client.on("messageCreate", async message => {
         const userTurn = stripBotMentions(String(message.content ?? ''), client.user?.id);
         try {
           const response = await openai.chat.completions.create({
-            model: "gpt-5-nano",
+            model: "gpt-5",
             messages: [
               { role: "system", content: await buildSystemPrompt() },
               ...history,
