@@ -209,40 +209,11 @@ function splitMessage(text: string, maxLength: number = 2000): string[] {
   return chunks;
 }
 
-// Slash commands
-const commands = [
-  new SlashCommandBuilder()
-    .setName("ping")
-    .setDescription("Replies with Pong!"),
-  new SlashCommandBuilder()
-    .setName("rules")
-    .setDescription("Get the current Nomic rules from GitHub")
-].map(cmd => cmd.toJSON());
-
-// Register commands
-const rest = new REST({ version: "10" }).setToken(TOKEN);
-
-(async () => {
-  try {
-    console.log("Registering slash commands...");
-    await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
-    console.log("Slash commands registered.");
-  } catch (error) {
-    console.error(error);
-  }
-})();
+// No slash commands - bot only responds to @mentions and replies
 
 // OpenAI client
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
-// Handle interactions
-client.on("interactionCreate", async interaction => {
-  if (!interaction.isChatInputCommand()) return;
-
-  if (interaction.commandName === "ping") {
-    await interaction.reply("Pong! 🏓");
-  }
-});
 
 // Handle message replies to bot messages
 client.on("messageCreate", async message => {

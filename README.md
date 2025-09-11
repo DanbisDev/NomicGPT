@@ -1,14 +1,14 @@
 # NomicGPT — Nomic Discord Bot
 
-A Discord bot built with TypeScript for playing Nomic: responds to @mentions, cites rules inline with links to your GitHub `rules.md`, and keeps context through reply chains.
+A Discord bot built with TypeScript for playing Nomic: responds to @mentions, cites rules inline with links to your GitHub `rules.md`, and maintains rich conversation context through reply chains.
 
 ## Features
 
 - **@mention Q&A**: Ask questions by mentioning the bot in any channel
-- **Reply-chain context**: Maintains up to 6 prior messages of context when you reply to the bot
-- **Live rules sync**: Fetches the latest `rules.md` from GitHub
-- **Inline citations**: Converts references like `Rule 123` to markdown links to that rule anchor
-- **Slash commands**: `/ping`, `/rules`
+- **Smart Reply Context**: Maintains conversation history including both user and bot messages (up to 6 user messages)
+- **Live Rules & Scores Sync**: Fetches the latest `rules.md` and `scores.md` from GitHub
+- **Inline Citations**: Converts references like `Rule 123` to markdown links to that rule anchor
+- **Message Splitting**: Automatically splits long responses into multiple messages (Discord 2000 char limit)
 - **TypeScript + Discord.js v14**
 
 ## Setup
@@ -48,8 +48,8 @@ A Discord bot built with TypeScript for playing Nomic: responds to @mentions, ci
 4. Copy the bot token and paste it as `DISCORD_TOKEN`
 5. Go to the "General Information" section and copy the Application ID as `CLIENT_ID`
 6. In the "OAuth2" > "URL Generator" section:
-   - Select "bot" and "applications.commands" scopes
-   - Select necessary permissions (Send Messages, Use Slash Commands)
+   - Select "bot" scope
+   - Select necessary permissions (Send Messages, Read Message History, Add Reactions)
    - Use the generated URL to invite your bot to a server
 
 ## Usage
@@ -69,12 +69,25 @@ npm run build
 npm start
 ```
 
-### Available Commands and Interactions
+### Available Interactions
 
-- `/ping` — Responds with "Pong!"
-- `/rules` — Fetch and display current Nomic rules from GitHub
 - `@NomicGPT ...` — Mention the bot to ask a question
-  - Reply to the bot’s message to continue the conversation; the bot includes up to 6 messages of prior context
+  - Reply to the bot's message to continue the conversation
+  - Bot maintains context of both user and bot messages (up to 6 user messages)
+  - Long responses are automatically split into multiple messages
+
+### Example Usage
+
+```
+User: @NomicGPT What does Rule 123 say?
+Bot: [Rule 123](https://github.com/SirRender00/nomic/blob/main/rules.md#123) states that...
+
+User: [replies] Can you give me an example?
+Bot: Here's an example of Rule 123 in practice...
+
+User: [replies] What about exceptions?
+Bot: The exceptions to Rule 123 are...
+```
 
 ### Getting API Keys
 
@@ -92,6 +105,24 @@ npm start
 4. Select the `repo` scope (to read repository contents)
 5. Generate the token and copy it
 6. Paste it as `GITHUB_TOKEN`
+
+## Key Features Explained
+
+### Smart Context Management
+- **Reply Chain Traversal**: When you reply to the bot, it walks up the reply chain to gather context
+- **Bidirectional History**: Includes both your messages and the bot's previous responses
+- **Minimum User Messages**: Ensures at least 6 user messages are included for rich context
+- **Mention Priority**: If you both mention and reply to the bot, reply context takes priority
+
+### Message Handling
+- **Automatic Splitting**: Long responses are split at natural boundaries (paragraphs, sentences)
+- **Discord Compliant**: All messages stay under the 2000 character limit
+- **Seamless Flow**: Multiple message chunks appear as a natural conversation
+
+### Rule Integration
+- **Live Sync**: Always uses the latest rules and scores from your GitHub repository
+- **Smart Citations**: Automatically converts rule references to clickable links
+- **Context Awareness**: Understands rule relationships and interactions
 
 ## Project Structure
 
