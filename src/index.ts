@@ -45,10 +45,12 @@ function stripBotMentions(input: string, botId?: string | null): string {
 }
 
 // Build up to maxDepth ancestor messages from a reply chain (oldest to newest)
+// Includes both user and bot messages, continuing until we have at least 6 user messages
 async function buildReplyChainContext(message: any, maxDepth: number, botId?: string | null): Promise<Array<{ role: 'user' | 'assistant', content: string }>> {
   const ancestors: any[] = [];
   let current = message;
   let depth = 0;
+  let userMessageCount = 0;
 
   while (current?.reference?.messageId && depth < maxDepth) {
     try {
@@ -57,6 +59,16 @@ async function buildReplyChainContext(message: any, maxDepth: number, botId?: st
       ancestors.push(parent);
       current = parent;
       depth++;
+      
+      // Count user messages to ensure we get at least 6
+      if (parent.author?.id !== botId) {
+        userMessageCount++;
+      }
+      
+      // If we have at least 6 user messages, we can stop early
+      if (userMessageCount >= 6) {
+        break;
+      }
     } catch {
       break;
     }
