@@ -1,6 +1,6 @@
 # NomicGPT — Nomic Discord Bot
 
-A Discord bot built with TypeScript for playing Nomic: responds to @mentions, cites rules inline with links to your GitHub `rules.md`, and maintains rich conversation context through reply chains.
+A Discord bot built with TypeScript for playing Nomic: responds to @mentions, cites rules inline with links to your GitHub `rules.md`, and maintains rich conversation context through reply chains. This project is 95% AI generated 
 
 ## Features
 
