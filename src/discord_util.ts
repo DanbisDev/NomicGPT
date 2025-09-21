@@ -73,7 +73,7 @@ export async function buildChatContext(message: any, maxReplyDepth: number, hist
 
     // Process history setting roles based on author id and marking historical context
     const contextualizedHistory = combinedHistory.map((m: any) => {
-      const isHistorical = filteredHistoricalMessages.includes(m);
+      const isHistorical = filteredHistoricalMessages.has(m.id);
       const content = stripBotMentions(String(m.content ?? ''), botId);
       
       return {
