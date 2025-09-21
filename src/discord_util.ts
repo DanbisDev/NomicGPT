@@ -69,14 +69,6 @@ export async function buildChatContext(message: any, maxReplyDepth: number, hist
   
     // Convert filtered historical messages to array for easier processing
     const historicalArray = Array.from(filteredHistoricalMessages.values());
-    
-    // Debug logging
-    console.log(`Debug: Found ${historicalArray.length} historical messages`);
-    console.log(`Debug: Found ${ancestors.length} ancestor messages`);
-    historicalArray.forEach((msg: any, index: number) => {
-      console.log(`Debug: Historical ${index}: "${msg.content?.substring(0, 50)}..." by ${msg.author?.username}`);
-    });
-    
     // Sort all messages by timestamp to maintain chronological order
     const combinedHistory = [...historicalArray, ...ancestors];
     combinedHistory.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
@@ -90,11 +82,6 @@ export async function buildChatContext(message: any, maxReplyDepth: number, hist
         role: m.author?.id === botId ? 'assistant' as const : 'user' as const,
         content: isHistorical ? `[Historical context] ${content}` : content,
       };
-    });
-
-    console.log(`Debug: Final context has ${contextualizedHistory.length} messages`);
-    contextualizedHistory.forEach((msg, index) => {
-      console.log(`Debug: Context ${index}: ${msg.role} - "${msg.content.substring(0, 50)}..."`);
     });
 
     return contextualizedHistory;
