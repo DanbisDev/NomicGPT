@@ -273,10 +273,27 @@ client.on("messageCreate", async message => {
         return;
       }
       await message.react('🤔');
+      
+      // Check if this mentioned message is part of a reply chain and build context
+      let history: Array<{ role: 'user' | 'assistant', content: string }> = [];
+      if (message.reference && message.reference.messageId) {
+        try {
+          const referencedMessage = await message.channel.messages.fetch(message.reference.messageId);
+          // If the referenced message is from the bot, build reply chain context
+          if (referencedMessage.author.id === client.user?.id) {
+            history = await buildReplyChainContext(message, 6, client.user?.id);
+          }
+        } catch (error) {
+          console.error("Error building context for mention:", error);
+          // Continue without context if there's an error
+        }
+      }
+      
       const response = await openai.chat.completions.create({
         model: "gpt-5-mini",
         messages: [
           { role: "system", content: await buildSystemPrompt() },
+          ...history,
           { role: "user", content: cleanContent }
         ],
       });
