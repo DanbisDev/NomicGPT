@@ -67,22 +67,15 @@ export async function buildChatContext(message: any, maxReplyDepth: number, hist
       return !ancestors.some(ancestor => ancestor.id === historicalMsg.id);
     });
   
-    // Process ancestors (reply chain) - these are the primary context
-    const replyHistory = ancestors.map((m: any) => ({
+    const combinedHistory = [...filteredHistoricalMessages, ...ancestors];
+
+    // Process history setting roles based on author id
+    const contextualizedHistory = combinedHistory.map((m: any) => ({
       role: m.author?.id === botId ? 'assistant' as const : 'user' as const,
       content: stripBotMentions(String(m.content ?? ''), botId),
     }));
   
-    // Process historical messages (all messages) - these are secondary context
-    const historicalContext = filteredHistoricalMessages.map((m: any) => ({
-      role: m.author?.id === botId ? 'assistant' as const : 'spectator' as const,
-      content: `[Historical context] ${stripBotMentions(String(m.content ?? ''), botId)}`,
-    }));
-  
-    // Combine: historical messages first (less important), then reply chain (more important)
-    const allHistory = [...historicalContext, ...replyHistory];
-  
-    return allHistory;
+    return contextualizedHistory;
   }
 
   // Function to split long messages into chunks that fit Discord's 2000 character limit
