@@ -67,14 +67,21 @@ export async function buildChatContext(message: any, maxReplyDepth: number, hist
       return !ancestors.some(ancestor => ancestor.id === historicalMsg.id);
     });
   
+    // Sort all messages by timestamp to maintain chronological order
     const combinedHistory = [...filteredHistoricalMessages, ...ancestors];
+    combinedHistory.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
 
-    // Process history setting roles based on author id
-    const contextualizedHistory = combinedHistory.map((m: any) => ({
-      role: m.author?.id === botId ? 'assistant' as const : 'user' as const,
-      content: stripBotMentions(String(m.content ?? ''), botId),
-    }));
-  
+    // Process history setting roles based on author id and marking historical context
+    const contextualizedHistory = combinedHistory.map((m: any) => {
+      const isHistorical = filteredHistoricalMessages.includes(m);
+      const content = stripBotMentions(String(m.content ?? ''), botId);
+      
+      return {
+        role: m.author?.id === botId ? 'assistant' as const : 'user' as const,
+        content: isHistorical ? `[Historical context] ${content}` : content,
+      };
+    });
+
     return contextualizedHistory;
   }
 
