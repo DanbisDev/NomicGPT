@@ -100,7 +100,7 @@ export function splitMessage(text: string, maxLength: number = 2000): string[] {
     const paragraphs = text.split('\n\n');
     
     for (const paragraph of paragraphs) {
-      // If adding this paragraph would exceed the limit, start a new chunk
+        // If adding this paragraph would exceed the limit, start a new chunk
       if (currentChunk.length + paragraph.length + 2 > maxLength) {
         if (currentChunk.length > 0) {
           chunks.push(currentChunk.trim());

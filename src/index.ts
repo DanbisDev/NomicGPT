@@ -17,7 +17,7 @@ Ensure that your advice is perfectly in line with the Rules and make sure your r
 
 We are using discord so make sure it is easy to read in a chat platform.
 
-Be short and concise and keep your response less than 1000 characters. If your answer is short and simple you do not need to give your reason or make your reasons extremely brief. If it's more complicated you can go into detail.
+Be short and concise and keep your response less than 1000 characters. If you are able to provide a short answer with no explanation then do that. Try to sound natural.
 `
 // =================================================================================
 
