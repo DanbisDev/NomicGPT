@@ -35,7 +35,7 @@ export async function getNomicRules(): Promise<string> {
       const { data } = await octokit.rest.repos.getContent({
         owner: "SirRender00",
         repo: "nomic",
-        path: "scores.txt",
+        path: "players.md",
       });
   
       if ("content" in data && data.content) {
