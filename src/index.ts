@@ -1,5 +1,6 @@
 import 'dotenv/config';
-import { Client, GatewayIntentBits } from "discord.js";
+import { Client, GatewayIntentBits, ChannelType } from "discord.js";
+import type { Collection, GuildBasedChannel, Message, TextChannel } from "discord.js";
 import OpenAI from "openai";
 import { buildChatContext, formatRuleCitations, splitMessage, stripBotMentions } from './discord_util';
 import { getNomicRules, getNomicPlayers, getNomicAgendas } from './github_grabber';
@@ -34,13 +35,48 @@ const client = new Client({
 });
 
 // Function to build the complete system prompt with rules, agendas, and players
-async function buildSystemPrompt(): Promise<string> {
+async function buildSystemPrompt(mainChamberTopic?: string | null): Promise<string> {
   const [rules, agendas, players] = await Promise.all([
     getNomicRules(),
     getNomicAgendas(),
     getNomicPlayers(),
   ]);
-  return `${systemPrompt}\n\n----- RULES -----\n\n${rules}\n\n----- AGENDAS -----\n\n${agendas}\n\n----- PLAYERS -----\n\n${players}\n\n`;
+  let prompt = `${systemPrompt}\n`;
+
+  if (mainChamberTopic) {
+    prompt += `\n----- MAIN CHAMBER TOPIC -----\n\n${mainChamberTopic}\n`;
+  }
+
+  prompt += `\n----- RULES -----\n\n${rules}\n\n----- AGENDAS -----\n\n${agendas}\n\n----- PLAYERS -----\n\n${players}\n\n`;
+  return prompt;
+}
+
+function findMainChamberChannel(channels: Collection<string, GuildBasedChannel>): TextChannel | null {
+  const channel = channels.find((candidate): candidate is TextChannel => {
+    return candidate.type === ChannelType.GuildText && candidate.name === 'main-chamber';
+  });
+  return channel ?? null;
+}
+
+async function getMainChamberTopic(message: Message): Promise<string | null> {
+  const guild = message.guild;
+  if (!guild) {
+    return null;
+  }
+
+  let mainChamberChannel = findMainChamberChannel(guild.channels.cache);
+
+  if (!mainChamberChannel) {
+    try {
+      const fetchedChannels = await guild.channels.fetch();
+      mainChamberChannel = findMainChamberChannel(fetchedChannels);
+    } catch {
+      return null;
+    }
+  }
+
+  const topic = mainChamberChannel?.topic?.trim();
+  return topic && topic.length > 0 ? topic : null;
 }
 
 
@@ -66,10 +102,12 @@ client.on("messageCreate", async message => {
     const history = await buildChatContext(message, 6, 10, client.user?.id);
     const userMessageContent = stripBotMentions(String(message.content ?? ''), client.user?.id);
     try {
+      const mainChamberTopic = await getMainChamberTopic(message);
+      const systemPromptContent = await buildSystemPrompt(mainChamberTopic);
       const response = await openai.chat.completions.create({
         model: "gpt-5",
         messages: [
-          { role: "system", content: await buildSystemPrompt() },
+          { role: "system", content: systemPromptContent },
           ...history,
           { role: "user", content: userMessageContent }
         ],
