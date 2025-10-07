@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { Client, GatewayIntentBits } from "discord.js";
 import OpenAI from "openai";
 import { buildChatContext, formatRuleCitations, splitMessage, stripBotMentions } from './discord_util';
-import { getNomicRules, getNomicScores, getNomicAgendas } from './github_grabber';
+import { getNomicRules, getNomicPlayers, getNomicAgendas } from './github_grabber';
 
 // Load env vars
 const TOKEN = process.env.DISCORD_TOKEN as string;
@@ -33,14 +33,14 @@ const client = new Client({
   ] 
 });
 
-// Function to build the complete system prompt with rules, agendas, and scores
+// Function to build the complete system prompt with rules, agendas, and players
 async function buildSystemPrompt(): Promise<string> {
-  const [rules, agendas, scores] = await Promise.all([
+  const [rules, agendas, players] = await Promise.all([
     getNomicRules(),
     getNomicAgendas(),
-    getNomicScores(),
+    getNomicPlayers(),
   ]);
-  return `${systemPrompt}\n\n----- RULES -----\n\n${rules}\n\n----- AGENDAS -----\n\n${agendas}\n\n----- SCORES -----\n\n${scores}\n\n`;
+  return `${systemPrompt}\n\n----- RULES -----\n\n${rules}\n\n----- AGENDAS -----\n\n${agendas}\n\n----- PLAYERS -----\n\n${players}\n\n`;
 }
 
 

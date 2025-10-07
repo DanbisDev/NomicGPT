@@ -6,7 +6,7 @@ A Discord bot built with TypeScript for playing Nomic: responds to @mentions, ci
 
 - **@mention Q&A**: Ask questions by mentioning the bot in any channel
 - **Smart Reply Context**: Maintains conversation history including both user and bot messages (up to 6 user messages)
-- **Live Rules & Scores Sync**: Fetches the latest `rules.md` and `scores.md` from GitHub
+- **Live Rules & Players Sync**: Fetches the latest `rules.md` and `players.md` from GitHub
 - **Inline Citations**: Converts references like `Rule 123` to markdown links to that rule anchor
 - **Message Splitting**: Automatically splits long responses into multiple messages (Discord 2000 char limit)
 - **TypeScript + Discord.js v14**
@@ -120,7 +120,7 @@ Bot: The exceptions to Rule 123 are...
 - **Seamless Flow**: Multiple message chunks appear as a natural conversation
 
 ### Rule Integration
-- **Live Sync**: Always uses the latest rules and scores from your GitHub repository
+- **Live Sync**: Always uses the latest rules and players from your GitHub repository
 - **Smart Citations**: Automatically converts rule references to clickable links
 - **Context Awareness**: Understands rule relationships and interactions
 

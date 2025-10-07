@@ -51,8 +51,8 @@ export async function getNomicAgendas(): Promise<string> {
     }
   }
   
-  // Function to fetch scores from GitHub
-  export async function getNomicScores(): Promise<string> {
+  // Function to fetch players from GitHub
+  export async function getNomicPlayers(): Promise<string> {
     try {
       const { data } = await octokit.rest.repos.getContent({
         owner: "SirRender00",
@@ -65,11 +65,11 @@ export async function getNomicAgendas(): Promise<string> {
         const content = Buffer.from(data.content, 'base64').toString('utf-8');
         return content;
       } else {
-        throw new Error("Could not retrieve scores content");
+        throw new Error("Could not retrieve players content");
       }
     } catch (error) {
-      console.error("Error fetching scores:", error);
-      throw new Error("Failed to fetch scores from GitHub");
+      console.error("Error fetching players:", error);
+      throw new Error("Failed to fetch players from GitHub");
     }
   }
   
