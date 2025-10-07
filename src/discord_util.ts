@@ -30,11 +30,31 @@ export function stripBotMentions(input: string, botId?: string | null): string {
 
 // Build up to maxDepth ancestor messages from a reply chain (oldest to newest)
 // Includes both user and bot messages, continuing until we have at least 6 user messages
-export async function buildChatContext(message: any, maxReplyDepth: number, historicalChatDepth: number, botId?: string | null): Promise<Array<{ role: 'user' | 'assistant', content: string }>> {
+export async function buildChatContext(message: any, maxReplyDepth: number, historicalChatDepth: number, botId?: string | null): Promise<Array<{ role: 'user' | 'assistant' | 'system', content: string }>> {
     const ancestors: any[] = [];
     let current = message;
     let depth = 0;
     let userMessageCount = 0;
+
+    // Pull channel metadata so the model knows the conversation space
+    const channelName = (message?.channel && 'name' in message.channel && typeof message.channel.name === 'string')
+        ? message.channel.name
+        : null;
+    const rawChannelTopic = (message?.channel && 'topic' in message.channel && typeof (message.channel as { topic?: unknown }).topic === 'string')
+        ? (message.channel as { topic: string }).topic
+        : null;
+    const trimmedTopic = rawChannelTopic?.trim();
+    const channelTopic = trimmedTopic ? trimmedTopic : null;
+    const channelContext: Array<{ role: 'system', content: string }> = [];
+    if (channelName || channelTopic) {
+      const contextParts = [];
+      if (channelName) contextParts.push(`#${channelName}`);
+      if (channelTopic) contextParts.push(`Topic: ${channelTopic}`);
+      channelContext.push({
+        role: 'system',
+        content: `[Channel context] ${contextParts.join(' - ')}`
+      });
+    }
   
     // Collect reply chains
     while (current?.reference?.messageId && depth < maxReplyDepth) {
@@ -84,7 +104,7 @@ export async function buildChatContext(message: any, maxReplyDepth: number, hist
       };
     });
 
-    return contextualizedHistory;
+    return [...channelContext, ...contextualizedHistory];
   }
 
   // Function to split long messages into chunks that fit Discord's 2000 character limit
