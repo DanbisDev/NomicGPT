@@ -69,7 +69,8 @@ async function getMainChamberTopic(message: Message): Promise<string | null> {
   if (!mainChamberChannel) {
     try {
       const fetchedChannels = await guild.channels.fetch();
-      mainChamberChannel = findMainChamberChannel(fetchedChannels);
+      const nonNullChannels = fetchedChannels.filter((c): c is GuildBasedChannel => c !== null);
+      mainChamberChannel = findMainChamberChannel(nonNullChannels);
     } catch {
       return null;
     }
