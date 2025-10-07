@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { Client, GatewayIntentBits, ChannelType } from "discord.js";
-import type { Collection, GuildBasedChannel, Message, TextChannel } from "discord.js";
+import type { GuildBasedChannel, Message, TextChannel } from "discord.js";
 import OpenAI from "openai";
 import { buildChatContext, formatRuleCitations, splitMessage, stripBotMentions } from './discord_util';
 import { getNomicRules, getNomicPlayers, getNomicAgendas } from './github_grabber';
@@ -51,11 +51,13 @@ async function buildSystemPrompt(mainChamberTopic?: string | null): Promise<stri
   return prompt;
 }
 
-function findMainChamberChannel(channels: Collection<string, GuildBasedChannel>): TextChannel | null {
-  const channel = channels.find((candidate): candidate is TextChannel => {
-    return candidate.type === ChannelType.GuildText && candidate.name === 'main-chamber';
-  });
-  return channel ?? null;
+function findMainChamberChannel(channels: Iterable<GuildBasedChannel | null>): TextChannel | null {
+  for (const channel of channels) {
+    if (channel?.type === ChannelType.GuildText && channel.name === 'main-chamber') {
+      return channel as TextChannel;
+    }
+  }
+  return null;
 }
 
 async function getMainChamberTopic(message: Message): Promise<string | null> {
@@ -64,13 +66,12 @@ async function getMainChamberTopic(message: Message): Promise<string | null> {
     return null;
   }
 
-  let mainChamberChannel = findMainChamberChannel(guild.channels.cache);
+  let mainChamberChannel = findMainChamberChannel(guild.channels.cache.values());
 
   if (!mainChamberChannel) {
     try {
       const fetchedChannels = await guild.channels.fetch();
-      const nonNullChannels = fetchedChannels.filter((c): c is GuildBasedChannel => c !== null);
-      mainChamberChannel = findMainChamberChannel(nonNullChannels);
+      mainChamberChannel = findMainChamberChannel(fetchedChannels.values());
     } catch {
       return null;
     }
