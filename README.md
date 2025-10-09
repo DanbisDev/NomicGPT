@@ -1,4 +1,4 @@
-# NomicGPT — Discord Rules Counsel
+# NomicGPT
 
 NomicGPT is a Discord bot that helps players navigate the ever-changing rules of a Nomic game. It listens for @mentions or replies, gathers recent conversation context, fetches the latest rules/agenda/player lists from GitHub, and replies using OpenAI with inline rule citations.
 
