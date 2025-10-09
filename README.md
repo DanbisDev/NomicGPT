@@ -1,146 +1,89 @@
-# NomicGPT — Nomic Discord Bot
+# NomicGPT — Discord Rules Counsel
 
-A Discord bot built with TypeScript for playing Nomic: responds to @mentions, cites rules inline with links to your GitHub `rules.md`, and maintains rich conversation context through reply chains. This project is 95% AI generated 
+NomicGPT is a Discord bot that helps players navigate the ever-changing rules of a Nomic game. It listens for @mentions or replies, gathers recent conversation context, fetches the latest rules/agenda/player lists from GitHub, and replies using OpenAI with inline rule citations.
 
-## Features
+## Prerequisites
 
-- **@mention Q&A**: Ask questions by mentioning the bot in any channel
-- **Smart Reply Context**: Maintains conversation history including both user and bot messages (up to 6 user messages)
-- **Live Rules & Players Sync**: Fetches the latest `rules.md` and `players.md` from GitHub
-- **Inline Citations**: Converts references like `Rule 123` to markdown links to that rule anchor
-- **Message Splitting**: Automatically splits long responses into multiple messages (Discord 2000 char limit)
-- **TypeScript + Discord.js v14**
-
-## Setup
-
-### Prerequisites
-
-- Node.js (v16 or higher)
-- A Discord application and bot token
+- Node.js 18+
+- Discord bot token with Message Content intent enabled
 - OpenAI API key
-- GitHub Personal Access Token (for fetching rules)
+- GitHub personal access token (read access to the rules repository)
 
-### Installation
+## Quick Start
 
-1. Clone or download this project
-2. Install dependencies:
+1. Install dependencies:
    ```bash
    npm install
    ```
-
-3. Create a `.env` file with the following variables:
+2. Create a `.env` file in the project root:
+   ```ini
+   DISCORD_TOKEN=your_bot_token
+   OPENAI_API_KEY=your_openai_key
+   GITHUB_TOKEN=your_github_pat
    ```
-   DISCORD_TOKEN=your_bot_token_here
-   CLIENT_ID=your_application_id_here
-   OPENAI_API_KEY=your_openai_api_key_here
-   GITHUB_TOKEN=your_github_token_here
+   Optional but recommended:
+   ```ini
+   CLIENT_ID=discord_application_id
+   ```
+3. Run the bot in development mode:
+   ```bash
+   npm run dev
    ```
 
-4. In the Discord Developer Portal (Bot settings), enable Privileged Gateway Intents:
-   - Message Content Intent (required for @mention and replies)
-   - Guild Members Intent (optional, only if needed later)
+## Local Development
 
-### Getting Discord Bot Credentials
+- `npm run dev` – Start the bot with ts-node (no rebuild required)
+- `npm run build` – Compile TypeScript to `dist/`
+- `npm start` – Execute the compiled bot from `dist/`
+- `npm run lint` – ESLint with TypeScript rules
+- `npm test` – Jest unit tests (no live Discord/OpenAI calls)
+- `npm run watch` – Incremental TypeScript compilation
 
-1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
-2. Create a new application
-3. Go to the "Bot" section and create a bot
-4. Copy the bot token and paste it as `DISCORD_TOKEN`
-5. Go to the "General Information" section and copy the Application ID as `CLIENT_ID`
-6. In the "OAuth2" > "URL Generator" section:
-   - Select "bot" scope
-   - Select necessary permissions (Send Messages, Read Message History, Add Reactions)
-   - Use the generated URL to invite your bot to a server
+## Testing & Quality
 
-## Usage
+- Unit tests live in `tests/` and focus on pure logic (prompt composition, Discord helpers, formatting utilities).
+- All tests run in CI and locally with `npm test`.
+- Linting enforces strict TypeScript usage; CI will fail on lint errors.
 
-### Development
+## Discord Application Setup
 
-Run the bot in development mode with hot reload:
-```bash
-npm run dev
-```
+1. Visit the [Discord Developer Portal](https://discord.com/developers/applications), create an application, and add a bot user.
+2. Under *Bot* → *Privileged Gateway Intents*, enable **Message Content Intent**.
+3. Generate an OAuth2 URL with the `bot` scope and permissions for sending messages, reading history, and adding reactions.
+4. Invite the bot using the generated URL and copy the token into `.env` as `DISCORD_TOKEN`.
 
-### Production
+## GitHub & OpenAI Credentials
 
-Build and run the bot:
-```bash
-npm run build
-npm start
-```
-
-### Available Interactions
-
-- `@NomicGPT ...` — Mention the bot to ask a question
-  - Reply to the bot's message to continue the conversation
-  - Bot maintains context of both user and bot messages (up to 6 user messages)
-  - Long responses are automatically split into multiple messages
-
-### Example Usage
-
-```
-User: @NomicGPT What does Rule 123 say?
-Bot: [Rule 123](https://github.com/SirRender00/nomic/blob/main/rules.md#123) states that...
-
-User: [replies] Can you give me an example?
-Bot: Here's an example of Rule 123 in practice...
-
-User: [replies] What about exceptions?
-Bot: The exceptions to Rule 123 are...
-```
-
-### Getting API Keys
-
-#### OpenAI API Key
-1. Go to [OpenAI Platform](https://platform.openai.com/)
-2. Create an account or sign in
-3. Navigate to API Keys section
-4. Create a new API key
-5. Copy the key and paste it as `OPENAI_API_KEY`
-
-#### GitHub Personal Access Token
-1. Go to [GitHub Settings > Developer settings > Personal access tokens](https://github.com/settings/tokens)
-2. Click "Generate new token" > "Generate new token (classic)"
-3. Give it a descriptive name (e.g., "Nomic Bot")
-4. Select the `repo` scope (to read repository contents)
-5. Generate the token and copy it
-6. Paste it as `GITHUB_TOKEN`
-
-## Key Features Explained
-
-### Smart Context Management
-- **Reply Chain Traversal**: When you reply to the bot, it walks up the reply chain to gather context
-- **Bidirectional History**: Includes both your messages and the bot's previous responses
-- **Minimum User Messages**: Ensures at least 6 user messages are included for rich context
-- **Mention Priority**: If you both mention and reply to the bot, reply context takes priority
-
-### Message Handling
-- **Automatic Splitting**: Long responses are split at natural boundaries (paragraphs, sentences)
-- **Discord Compliant**: All messages stay under the 2000 character limit
-- **Seamless Flow**: Multiple message chunks appear as a natural conversation
-
-### Rule Integration
-- **Live Sync**: Always uses the latest rules and players from your GitHub repository
-- **Smart Citations**: Automatically converts rule references to clickable links
-- **Context Awareness**: Understands rule relationships and interactions
+- Generate an OpenAI API key from the [OpenAI dashboard](https://platform.openai.com/).
+- Create a GitHub personal access token with `repo` scope so the bot can read markdown files via the GitHub API.
 
 ## Project Structure
 
 ```
 ├── src/
-│   └── index.ts          # Main bot file
-├── dist/                 # Compiled JavaScript (after build)
-├── package.json          # Dependencies and scripts
-├── tsconfig.json         # TypeScript configuration
-└── README.md            # This file
+│   ├── channel_util.ts     # Discord channel helpers
+│   ├── discord_util.ts     # Formatting + context helpers
+│   ├── github_grabber.ts   # GitHub content fetchers
+│   ├── index.ts            # Bot entry point
+│   └── prompt_builder.ts   # System prompt composition
+├── tests/                  # Jest unit tests
+├── .github/workflows/      # CI pipelines
+├── jest.config.ts          # Jest configuration
+├── tsconfig*.json          # TypeScript configurations
+└── package.json
 ```
 
-## Scripts
+## How It Responds
 
-- `npm run dev` - Run bot in development mode with ts-node
-- `npm run build` - Compile TypeScript to JavaScript
-- `npm start` - Run the compiled bot
-- `npm run watch` - Watch for changes and recompile
+- Mention the bot (`@NomicGPT`) or reply to an existing bot message.
+- The bot gathers recent history (reply chain + recent channel messages) and channel metadata.
+- Rules, agenda, and player rosters are fetched from GitHub on each request.
+- Responses include inline links such as `[Rule 123](...)` for easy referencing.
+- Messages longer than 2000 characters are automatically split into Discord-friendly chunks.
+
+## Continuous Integration
+
+GitHub Actions run linting, unit tests, and a TypeScript build on every pull request and push to `main`. See `.github/workflows/ci.yml` for details.
 
 ## License
 

@@ -7,7 +7,9 @@ const octokit = new Octokit({
     auth: GITHUB_TOKEN,
   });
 
-// Function to fetch rules from GitHub
+/**
+ * Fetches the current nomic rules markdown from GitHub.
+ */
 export async function getNomicRules(): Promise<string> {
     try {
       const { data } = await octokit.rest.repos.getContent({
@@ -29,7 +31,9 @@ export async function getNomicRules(): Promise<string> {
     }
   }
   
-// Function to fetch agendas from GitHub
+/**
+ * Fetches the current agendas markdown from GitHub.
+ */
 export async function getNomicAgendas(): Promise<string> {
     try {
       const { data } = await octokit.rest.repos.getContent({
@@ -51,7 +55,9 @@ export async function getNomicAgendas(): Promise<string> {
     }
   }
   
-  // Function to fetch players from GitHub
+  /**
+   * Fetches the current players markdown from GitHub.
+   */
   export async function getNomicPlayers(): Promise<string> {
     try {
       const { data } = await octokit.rest.repos.getContent({

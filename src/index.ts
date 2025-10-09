@@ -1,9 +1,11 @@
 import 'dotenv/config';
-import { Client, GatewayIntentBits, ChannelType } from "discord.js";
-import type { GuildBasedChannel, Message, TextChannel } from "discord.js";
+import { Client, GatewayIntentBits } from "discord.js";
+import type { Message } from "discord.js";
 import OpenAI from "openai";
 import { buildChatContext, formatRuleCitations, splitMessage, stripBotMentions } from './discord_util';
 import { getNomicRules, getNomicPlayers, getNomicAgendas } from './github_grabber';
+import { composeSystemPrompt } from './prompt_builder';
+import { findMainChamberChannel } from './channel_util';
 
 // Load env vars
 const TOKEN = process.env.DISCORD_TOKEN as string;
@@ -35,31 +37,28 @@ const client = new Client({
 });
 
 // Function to build the complete system prompt with rules, agendas, and players
+/**
+ * Builds the base system prompt augmented with the latest rules, agendas, and players.
+ * Optionally includes the current main chamber topic to keep responses contextual.
+ */
 async function buildSystemPrompt(mainChamberTopic?: string | null): Promise<string> {
   const [rules, agendas, players] = await Promise.all([
     getNomicRules(),
     getNomicAgendas(),
     getNomicPlayers(),
   ]);
-  let prompt = `${systemPrompt}\n`;
-
-  if (mainChamberTopic) {
-    prompt += `\n----- MAIN CHAMBER TOPIC -----\n\n${mainChamberTopic}\n`;
-  }
-
-  prompt += `\n----- RULES -----\n\n${rules}\n\n----- AGENDAS -----\n\n${agendas}\n\n----- PLAYERS -----\n\n${players}\n\n`;
-  return prompt;
+  return composeSystemPrompt({
+    basePrompt: systemPrompt,
+    mainChamberTopic,
+    rules,
+    agendas,
+    players,
+  });
 }
 
-function findMainChamberChannel(channels: Iterable<GuildBasedChannel | null>): TextChannel | null {
-  for (const channel of channels) {
-    if (channel?.type === ChannelType.GuildText && channel.name === 'main-chamber') {
-      return channel as TextChannel;
-    }
-  }
-  return null;
-}
-
+/**
+ * Fetches the topic from the main chamber channel to inject into the system prompt.
+ */
 async function getMainChamberTopic(message: Message): Promise<string | null> {
   const guild = message.guild;
   if (!guild) {
@@ -140,4 +139,4 @@ client.once("ready", () => {
   console.log(`✅ Logged in as ${client.user?.tag}`);
 });
 
-client.login(TOKEN);
+void client.login(TOKEN);
